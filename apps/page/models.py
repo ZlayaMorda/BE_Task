@@ -31,5 +31,16 @@ class Post(models.Model):
 
     reply_to = models.ForeignKey('Post', on_delete=models.SET_NULL, null=True, related_name='replies')
 
+    likes = models.PositiveIntegerField(default=0)
+    dislikes = models.PositiveIntegerField(default=0)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class Reaction(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='reactions')
+    user = models.ForeignKey('user.CustomUser', on_delete=models.CASCADE, related_name='reactions')
+
+    like = models.BooleanField(default=False)
+    dislike = models.BooleanField(default=False)
