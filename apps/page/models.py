@@ -6,6 +6,9 @@ from apps import user
 class Tag(models.Model):
     name = models.CharField(max_length=30, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Page(models.Model):
     name = models.CharField(max_length=80)
@@ -24,6 +27,9 @@ class Page(models.Model):
     unblock_date = models.DateTimeField(null=True, blank=True)
     is_blocked = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.name
+
 
 class Post(models.Model):
     page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='posts')
@@ -37,6 +43,9 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return str(self.updated_at)
+
 
 class Reaction(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='reactions')
@@ -44,3 +53,6 @@ class Reaction(models.Model):
 
     like = models.BooleanField(default=False)
     dislike = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.user)
