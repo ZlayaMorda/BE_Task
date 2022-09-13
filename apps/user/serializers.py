@@ -3,10 +3,6 @@ from .models import CustomUser
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = "__all__"
-
     def save(self, *args, **kwargs):
         user = CustomUser(
             email=self.validated_data['email'],
@@ -25,3 +21,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({password: "Passwords are not the same"})
 
         return password
+
+    class Meta:
+        model = CustomUser
+        fields = "__all__"
