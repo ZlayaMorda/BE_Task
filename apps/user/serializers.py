@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import CustomUser
 
 
-class CustomUserSerializer(serializers.ModelSerializer):
+class CreateCustomUserSerializer(serializers.ModelSerializer):
     def save(self, *args, **kwargs):
         user = CustomUser(
             email=self.validated_data['email'],

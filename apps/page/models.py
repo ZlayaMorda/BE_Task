@@ -1,14 +1,7 @@
 from django.db import models
 
 from apps import user
-
-
-class BaseChangeTime(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        abstract = True
+from utils.models import HistorizedModel
 
 
 class Tag(models.Model):
@@ -39,7 +32,7 @@ class Page(models.Model):
         return self.name
 
 
-class Post(BaseChangeTime):
+class Post(HistorizedModel):
     page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='posts')
     content = models.CharField(max_length=180)
 
