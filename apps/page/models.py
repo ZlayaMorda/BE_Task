@@ -1,3 +1,4 @@
+import uuid as uuid
 from django.db import models
 
 from apps import user
@@ -13,7 +14,7 @@ class Tag(HistorizedModel):
 
 class Page(HistorizedModel):
     name = models.CharField(max_length=80)
-    uuid = models.CharField(max_length=30, unique=True)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
     description = models.TextField()
     tags = models.ManyToManyField('Tag', related_name='pages')
 
