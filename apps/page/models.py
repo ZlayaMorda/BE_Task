@@ -4,14 +4,14 @@ from apps import user
 from utils.models import HistorizedModel
 
 
-class Tag(models.Model):
+class Tag(HistorizedModel):
     name = models.CharField(max_length=30, unique=True)
 
     def __str__(self):
         return self.name
 
 
-class Page(models.Model):
+class Page(HistorizedModel):
     name = models.CharField(max_length=80)
     uuid = models.CharField(max_length=30, unique=True)
     description = models.TextField()
@@ -45,7 +45,7 @@ class Post(HistorizedModel):
         return str(self.updated_at)
 
 
-class Reaction(models.Model):
+class Reaction(HistorizedModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='reactions')
     user = models.ForeignKey('user.CustomUser', on_delete=models.CASCADE, related_name='reactions')
 

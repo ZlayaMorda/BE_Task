@@ -1,27 +1,28 @@
 from rest_framework import serializers
-from .models import CustomUser
+from apps.user.models import CustomUser
 
 
-class CreateCustomUserSerializer(serializers.ModelSerializer):
+class CustomUserCreateSerializer(serializers.ModelSerializer):
+    password2 = serializers.CharField()
+
     def save(self, *args, **kwargs):
         user = CustomUser(
             email=self.validated_data['email'],
             username=self.validated_data['username'],
         )
-        password = self.validate_password()
-        user.set_password(password)
+        user.set_password(self.validated_data['password'])
         user.save()
         return user
 
-    def validate_password(self):
-        password = self.validated_data['password']
-        password2 = self.validated_data['password2']
+    def validate(self, data):
+        password = data['password']
+        password2 = data['password2']
 
         if password != password2:
             raise serializers.ValidationError({password: "Passwords are not the same"})
 
-        return password
+        return data
 
     class Meta:
         model = CustomUser
-        fields = "__all__"
+        fields = ["email", "username", "password", "password2"]
