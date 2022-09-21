@@ -1,9 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from apps.user.managers import CustomUserManager
+from utils.models import HistorizedModel
 
 
-class CustomUser(AbstractUser):
+class CustomUser(AbstractUser, HistorizedModel):
     class Roles(models.TextChoices):
         USER = "user"
         MODERATOR = "moderator"
