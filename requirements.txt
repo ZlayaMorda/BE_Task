@@ -4,3 +4,4 @@ psycopg2-binary==2.9.3
 python-dotenv==0.20.0
 web3==5.30.0
 djangorestframework==3.13.1
+uuid==1.30
