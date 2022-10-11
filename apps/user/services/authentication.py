@@ -7,13 +7,13 @@ from innotter.settings import SECRET_KEY
 
 class SafeJWTAuthentication:
     @staticmethod
-    def authenticate(self, request):
+    def authenticate(request):
 
         User = CustomUser
         authorization_header = request.headers.get('Authorization')
 
         if not authorization_header:
-            return None
+            raise exceptions.AuthenticationFailed('missing header')
         try:
             # header = 'Token xxxxxxxxxxxxxxxxxxxxxxxx'
             access_token = authorization_header.split(' ')[1]
