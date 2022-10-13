@@ -1,10 +1,8 @@
 import jwt
 from django.contrib.auth import get_user_model
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
-from rest_framework import exceptions
+from rest_framework import exceptions, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from utils.views import BaseViewSet
 from rest_framework import mixins
@@ -18,23 +16,22 @@ from apps.user.services.generate_jwt import generate_access_token, generate_refr
 
 class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
     action_serializers = {
-        'create': CustomUserCreateSerializer,
-        'login_user': CustomUserLoginSerializer,
+        'signup': CustomUserCreateSerializer,
+        'signin': CustomUserLoginSerializer,
     }
 
-    action_permissions = {
-        'create': (AllowAny,),
-        'login_user': (AllowAny,),
-        'refresh_token': (AllowAny,)
-    }
+    @action(detail=False, methods=('post', ), permission_classes=(AllowAny,))
+    def signup(self, request):
+        serializer = self.get_serializer_class()
+        serialized_user = serializer(data=request.data)
+        serialized_user.is_valid(raise_exception=True)
+        serialized_user.save()
+        return Response(serialized_user.data, status=status.HTTP_201_CREATED)
 
-    permission_classes = []
-
-    @method_decorator(ensure_csrf_cookie)
-    @action(detail=False, methods=('post',))
-    def login_user(self, request):
-
-        serialized_user = self.serializer_class(data=request.data)
+    @action(detail=False, methods=('post',), permission_classes=(AllowAny,))
+    def signin(self, request):
+        serializer = self.get_serializer_class()
+        serialized_user = serializer(data=request.data)
         serialized_user.is_valid(raise_exception=True)
         user = CustomUser.objects.get(email=request.data['email'])
 
@@ -46,8 +43,7 @@ class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
 
         return response
 
-    @method_decorator(ensure_csrf_cookie)
-    @action(detail=False, methods=('post',))
+    @action(detail=False, methods=('post',), permission_classes=(AllowAny,))
     def refresh_token(self, request):
         """
         To obtain a new access_token this view expects 2 important things:
