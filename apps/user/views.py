@@ -31,13 +31,12 @@ class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
         serialized_user.is_valid(raise_exception=True)
         user = CustomUser.objects.get(email=request.data['email'])
 
-        response = Response()
-        response.data = {
+        data = {
             'access_token': CustomJwt().generate_access_token(user),
             'refresh_token': CustomJwt().generate_refresh_token(user)
         }
 
-        return response
+        return Response(data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=('post',), permission_classes=(AllowAny,), url_path='refresh-token')
     def refresh_token(self, request):
