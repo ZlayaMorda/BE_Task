@@ -7,8 +7,7 @@ from rest_framework import mixins
 
 from apps.user.models import CustomUser
 from apps.user.serializers import CustomUserCreateSerializer, CustomUserLoginSerializer
-from apps.user.services.generate_jwt import generate_access_token, generate_refresh_token
-from apps.user.services.get_user_from_refresh import get_user_from_refresh
+from apps.user.services.generate_jwt import CustomJwt
 
 
 class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
@@ -17,7 +16,7 @@ class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
         'sign_in': CustomUserLoginSerializer,
     }
 
-    @action(detail=False, methods=('post', ), permission_classes=(AllowAny,))
+    @action(detail=False, methods=('post', ), permission_classes=(AllowAny,), url_path='sign-up')
     def sign_up(self, request):
         serializer = self.get_serializer_class()
         serialized_user = serializer(data=request.data)
@@ -25,7 +24,7 @@ class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
         serialized_user.save()
         return Response(serialized_user.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=False, methods=('post',), permission_classes=(AllowAny,))
+    @action(detail=False, methods=('post',), permission_classes=(AllowAny,), url_path='sign-in')
     def sign_in(self, request):
         serializer = self.get_serializer_class()
         serialized_user = serializer(data=request.data)
@@ -34,20 +33,20 @@ class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
 
         response = Response()
         response.data = {
-            'access_token': generate_access_token(user),
-            'refresh_token': generate_refresh_token(user)
+            'access_token': CustomJwt().generate_access_token(user),
+            'refresh_token': CustomJwt().generate_refresh_token(user)
         }
 
         return response
 
-    @action(detail=False, methods=('post',), permission_classes=(AllowAny,))
+    @action(detail=False, methods=('post',), permission_classes=(AllowAny,), url_path='refresh-token')
     def refresh_token(self, request):
         """
         To obtain a new access_token this view expects 2 important things:
             1. a cookie that contains a valid refresh_token
             2. a header 'X-CSRFTOKEN' with a valid csrf token, client app can get it from cookies "csrftoken"
         """
-        user = get_user_from_refresh(request)
+        user = CustomJwt().get_user_from_refresh(request)
 
-        access_token = generate_access_token(user)
+        access_token = CustomJwt().generate_access_token(user)
         return Response({'access_token': access_token})
