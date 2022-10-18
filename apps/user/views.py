@@ -48,4 +48,4 @@ class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
         user = CustomJwt().get_user_from_refresh(request)
 
         access_token = CustomJwt().generate_access_token(user)
-        return Response({'access_token': access_token})
+        return Response({'access_token': access_token}, status=status.HTTP_200_OK)
