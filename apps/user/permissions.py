@@ -1,28 +1,28 @@
 from rest_framework import permissions
 
 
-class IsAdmin(permissions.BasePermission):
+class IsUserRole:
     @staticmethod
-    def _is_admin(request):
-        return request.user.is_staff or request.user.role == request.user.Roles.ADMIN.value
+    def _is_user_role(request, user_role):
+        return request.user.is_staff or request.user.role == user_role
+
+
+class IsAdmin(permissions.BasePermission, IsUserRole):
 
     def has_permission(self, request, view):
-        return self._is_admin(request)
+        return self._is_user_role(request, request.user.Roles.ADMIN.value)
 
     def has_object_permission(self, request, view, obj):
-        return self._is_admin(request)
+        return self._is_user_role(request, request.user.Roles.ADMIN.value)
 
 
-class IsModerator(permissions.BasePermission):
-    @staticmethod
-    def _is_moderator(request):
-        return request.user.role == request.user.Roles.MODERATOR.value
+class IsModerator(permissions.BasePermission, IsUserRole):
 
     def has_permission(self, request, view):
-        return self._is_moderator(request)
+        return self._is_user_role(request, request.user.Roles.MODERATOR.value)
 
     def has_object_permission(self, request, view, obj):
-        return self._is_moderator(request)
+        return self._is_user_role(request, request.user.Roles.MODERATOR.value)
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
