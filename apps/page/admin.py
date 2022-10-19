@@ -1,3 +1,7 @@
 from django.contrib import admin
+from apps.page.models import *
 
-# Register your models here.
+admin.site.register(Tag)
+admin.site.register(Page)
+admin.site.register(Post)
+admin.site.register(Reaction)
