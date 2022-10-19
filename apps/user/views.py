@@ -16,7 +16,15 @@ class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
         'sign_in': CustomUserLoginSerializer,
     }
 
-    @action(detail=False, methods=('post', ), permission_classes=(AllowAny,), url_path='sign-up')
+    action_permissions = {
+        'sign_up': (AllowAny, ),
+        'sign_in': (AllowAny, ),
+        'refresh_token': (AllowAny, ),
+    }
+
+    permission_classes = []
+
+    @action(detail=False, methods=('post', ), url_path='sign-up')
     def sign_up(self, request):
         serializer = self.get_serializer_class()
         serialized_user = serializer(data=request.data)
@@ -24,7 +32,7 @@ class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
         serialized_user.save()
         return Response(serialized_user.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=False, methods=('post',), permission_classes=(AllowAny,), url_path='sign-in')
+    @action(detail=False, methods=('post',), url_path='sign-in')
     def sign_in(self, request):
         serializer = self.get_serializer_class()
         serialized_user = serializer(data=request.data)
@@ -38,7 +46,7 @@ class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
 
         return Response(data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=('post',), permission_classes=(AllowAny,), url_path='refresh-token')
+    @action(detail=False, methods=('post',), url_path='refresh-token')
     def refresh_token(self, request):
         """
         To obtain a new access_token this view expects 2 important things:
