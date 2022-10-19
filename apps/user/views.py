@@ -22,8 +22,6 @@ class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
         'refresh_token': (AllowAny, ),
     }
 
-    permission_classes = []
-
     @action(detail=False, methods=('post', ), url_path='sign-up')
     def sign_up(self, request):
         serializer = self.get_serializer_class()
