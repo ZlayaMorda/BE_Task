@@ -36,7 +36,7 @@ class Page(HistorizedModel):
 class Post(HistorizedModel):
     page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='posts')
     content = models.CharField(max_length=180)
-
+    owner = models.ForeignKey('user.CustomUser', on_delete=models.CASCADE, related_name='posts')
     reply_to = models.ForeignKey('Post', on_delete=models.SET_NULL, null=True, related_name='replies')
 
     likes = models.PositiveIntegerField(default=0)
@@ -48,10 +48,10 @@ class Post(HistorizedModel):
 
 class Reaction(HistorizedModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='reactions')
-    user = models.ForeignKey('user.CustomUser', on_delete=models.CASCADE, related_name='reactions')
+    owner = models.ForeignKey('user.CustomUser', on_delete=models.CASCADE, related_name='reactions')
 
     like = models.BooleanField(default=False)
     dislike = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.user)
+        return str(self.owner)
