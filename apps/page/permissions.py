@@ -8,4 +8,5 @@ class IsPageFollower(permissions.BasePermission):
 
 class IsPageNotBlocked(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
+        print(obj.is_blocked)
         return not obj.is_blocked

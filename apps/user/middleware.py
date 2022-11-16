@@ -15,3 +15,8 @@ class AuthMiddleware(MiddlewareMixin):
         except Exception as e:
             print(e)
             request.user = AnonymousUser()
+
+
+class DisableCSRF(MiddlewareMixin):
+    def process_request(self, request):
+        setattr(request, '_dont_enforce_csrf_checks', True)
