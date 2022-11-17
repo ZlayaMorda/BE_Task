@@ -50,29 +50,30 @@ class PageListView(BaseViewSet, mixins.ListModelMixin):
 
 class FollowPageUpdateView(BaseViewSet, mixins.UpdateModelMixin):
     action_serializers = {
-        'update': FollowPageUpdateSerializer,
+        'follow': FollowPageUpdateSerializer,
+        'approve_follow': FollowPageUpdateSerializer
     }
     action_permissions = {
-        'update': (IsAuthenticated, IsPageNotBlocked)
+        'follow': (IsAuthenticated, IsPageNotBlocked),
+        'approve_follow': (IsAuthenticated, IsOwnerOrReadOnly, IsPageNotBlocked)
     }
     queryset = Page.objects.all()
 
-    def get_object(self, **kwargs):
-        pk = kwargs.get("pk", None)
-        obj = get_object_or_404(self.queryset, pk=pk)
+    def get_object(self):
+        obj = get_object_or_404(self.queryset, pk=self.kwargs.pop("pk", None))
         self.check_object_permissions(self.request, obj)
         return obj
 
-    def update(self, request, **kwargs):
-        page = self.get_object(**kwargs)
+    @action(detail=True, methods=('patch',), url_path='send-request')
+    def follow(self, request, **kwargs):
+        page = self.get_object()
         return PageServices.update_follow(request, page)
 
-
-class AllowFollowUpdateView(BaseViewSet, mixins.UpdateModelMixin):
-    action_serializers = {
-        'update': FollowPageUpdateSerializer
-    }
-
-    action_permissions = {
-        'update': (IsAuthenticated, IsOwnerOrReadOnly, IsPageNotBlocked)
-    }
+    @action(detail=True, methods=('patch', ), url_path='approve')
+    def approve_follow(self, request, **kwargs):
+        # partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance, request.data)
+        return Response(status=HTTP_200_OK)

@@ -1,5 +1,7 @@
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
+from rest_framework.generics import get_object_or_404
+
 from apps.page.models import Reaction, Tag, Page, Post
 from apps.user.models import CustomUser
 
@@ -60,7 +62,15 @@ class PageListSerializer(serializers.ModelSerializer):
         fields = ("uuid", "name", "description", "image", "is_private", "tags", "is_blocked")
 
 
-class FollowPageUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Page
-        fields = "__all__"
+class FollowPageUpdateSerializer(serializers.Serializer):
+    follow_pk = serializers.IntegerField()
+    approve = serializers.BooleanField()
+
+    def update(self, instance, validated_data):
+        request_pk = validated_data.pop("follow_pk")
+        approve = validated_data.pop("approve")
+        follower = get_object_or_404(instance.follow_requests, pk=request_pk)
+        if approve:
+            instance.followers.add(follower)
+        instance.follow_requests.remove(request_pk)
+        return instance
