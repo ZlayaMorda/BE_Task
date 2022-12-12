@@ -1,8 +1,9 @@
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
-from apps.page.models import Page, Tag
+from apps.page.models import Page, Tag, Reaction, Post
 
 
 class PageServices:
@@ -39,3 +40,20 @@ class PageServices:
         else:
             page.followers.add(user)
         return Response(status=HTTP_200_OK)
+
+    @staticmethod
+    def get_followers_queryset(self):
+        queryset = Page.objects.all()
+        obj = get_object_or_404(queryset, pk=self.request.query_params.get('uuid'))
+        self.check_object_permissions(self.request, obj)
+        return obj.follow_requests.all()
+
+    @staticmethod
+    def get_liked_posts(self):
+        queryset = Reaction.objects.filter(owner=self.request.user, like=True)
+        return queryset
+
+    @staticmethod
+    def get_page_posts(self):
+        queryset = Post.objects.filter(page=self.request.query_params.get('pk'))
+        return queryset

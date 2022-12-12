@@ -1,5 +1,7 @@
+from rest_framework.generics import get_object_or_404
 from rest_framework.viewsets import GenericViewSet
 
+from apps.page.models import Post
 from utils.paginations import BasePaginationClass
 from utils.serializers import EmptySerializer
 
@@ -27,3 +29,11 @@ class BaseViewSet(GenericViewSet):
     def get_permissions(self):
         permissions = self.action_permissions.get(self.action, self.permission_classes)
         return (permission() for permission in permissions)
+
+
+class BasePostViewSet(BaseViewSet):
+    queryset = Post.objects.all()
+    def get_object(self):
+        obj = get_object_or_404(self.queryset, pk=self.kwargs.pop("pk", None))
+        self.check_object_permissions(self.request, obj.page)
+        return obj

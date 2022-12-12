@@ -55,6 +55,11 @@ class PageUpdateSerializer(serializers.ModelSerializer):
         model = Page
         fields = ("uuid", "name", "description", "image", "is_private", "tags")
 
+class PageBlockUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Page
+        fields = ("is_blocked", "unblock_date")
+
 
 class PageListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -63,14 +68,95 @@ class PageListSerializer(serializers.ModelSerializer):
 
 
 class FollowPageUpdateSerializer(serializers.Serializer):
-    follow_pk = serializers.IntegerField()
+    follow_pk = serializers.IntegerField(required=False)
     approve = serializers.BooleanField()
 
     def update(self, instance, validated_data):
-        request_pk = validated_data.pop("follow_pk")
-        approve = validated_data.pop("approve")
+        try:
+            approve = validated_data.pop("approve")
+            request_pk = validated_data.pop("follow_pk")
+        except KeyError:
+            if approve is True:
+                for request_user in instance.follow_requests.all():
+                    instance.followers.add(request_user)
+                    instance.follow_requests.remove(request_user.pk)
+            elif approve is False:
+                for request_user in instance.follow_requests.all():
+                    instance.follow_requests.remove(request_user.pk)
+            return instance
+
         follower = get_object_or_404(instance.follow_requests, pk=request_pk)
         if approve:
             instance.followers.add(follower)
         instance.follow_requests.remove(request_pk)
         return instance
+
+class FollowerListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ("username", "email", "requests")
+        extra_kwargs = {"requests": {"required": False}}
+
+class PostCreateSerializer(serializers.ModelSerializer):
+    # page = PageSerializer()
+    # owner = UserSerializer()
+    class Meta:
+        model = Post
+        fields = ("content", "owner", "reply_to")
+        extra_kwargs = {"reply_to": {"required": False}}
+
+    def create(self, validated_data):
+        owner = CustomUser.objects.get(pk=validated_data.pop('owner'))
+        try:
+            reply_to = Post.objects.get(pk=validated_data.pop('reply_to'))
+            post = Post.objects.create(reply_to=reply_to, page=self.instance, owner=owner, **validated_data)
+            return post
+        except KeyError:
+            post = Post.objects.create(page=self.instance, owner=owner, **validated_data)
+            return post
+
+class PostUpdateDeleteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields =("content",)
+
+class PostListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ("page", "content", "reply_to")
+
+class LikedPostListSerializer(serializers.ModelSerializer):
+    post = PostListSerializer()
+    class Meta:
+        model = Reaction
+        fields = ("post",)
+class OwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= CustomUser
+        fields = "__all__"
+
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = "__all__"
+
+class LikeCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reaction
+        fields = ("like", "dislike")
+        extra_kwargs = {"like": {"required": False}, "dislike": {"required": False}}
+
+
+    def create_reaction(self, request):
+        # reaction = Reaction(post=self.instance, owner=request.user, **self.validated_data)
+        reaction = self.instance.reactions.get_or_create(owner=request.user)[0]
+        try:
+            reaction.like = self.validated_data.pop('like')
+        except KeyError:
+            reaction.like = reaction.like
+        try:
+            reaction.dislike = self.validated_data.pop('dislike')
+        except KeyError:
+            reaction.dislike = reaction.dislike
+        reaction.save()
+        return reaction.like, reaction.dislike
