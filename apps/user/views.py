@@ -2,11 +2,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
+
+from apps.user.permissions import IsAdmin, IsModerator
 from utils.views import BaseViewSet
 from rest_framework import mixins
 
 from apps.user.models import CustomUser
-from apps.user.serializers import CustomUserCreateSerializer, CustomUserLoginSerializer
+from apps.user.serializers import CustomUserCreateSerializer, CustomUserLoginSerializer, CustomUserBlockUpdateSerializer
 from apps.user.services.generate_jwt import CustomJwt
 
 
@@ -55,3 +57,14 @@ class AuthenticationView(BaseViewSet, mixins.CreateModelMixin):
 
         access_token = CustomJwt().generate_access_token(user)
         return Response({'access_token': access_token}, status=status.HTTP_200_OK)
+
+class BlockUserView(BaseViewSet, mixins.UpdateModelMixin):
+    action_serializers = {
+        'update': CustomUserBlockUpdateSerializer,
+    }
+
+    action_permissions = {
+        'update': (IsAuthenticated, IsAdmin or IsModerator)
+    }
+
+    queryset = CustomUser.objects.all()

@@ -62,3 +62,8 @@ class CustomUserLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("The user has been deactivate")
 
         return data
+
+class CustomUserBlockUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ("is_blocked",)
